@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOONSHOT — Crypto Crash</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050810;
+    --panel: #0a0f1e;
+    --panel2: #0d1424;
+    --border: #1a2340;
+    --green: #00ff88;
+    --green-dim: #00ff8840;
+    --red: #ff3366;
+    --red-dim: #ff336630;
+    --yellow: #ffd700;
+    --yellow-dim: #ffd70030;
+    --blue: #00aaff;
+    --blue-dim: #00aaff20;
+    --text: #e0e8ff;
+    --text-dim: #4a5a7a;
+    --text-mid: #8899bb;
+    --glow-green: 0 0 20px #00ff8880, 0 0 60px #00ff8830;
+    --glow-red: 0 0 20px #ff336680, 0 0 60px #ff336630;
+    --glow-yellow: 0 0 20px #ffd70080;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(2px 2px at 10% 80%, rgba(0,170,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 90%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 45%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 85%, rgba(0,255,136,0.2) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100vh;
+    gap: 12px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), var(--blue), transparent);
+    animation: scanline 3s linear infinite;
+  }
+  @keyframes scanline {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+  }
+  .logo span {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-mid);
+    -webkit-text-fill-color: var(--text-mid);
+    display: block;
+    margin-top: -4px;
+  }
+  .balance-display {
+    text-align: right;
+  }
+  .balance-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .balance-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    color: var(--yellow);
+    text-shadow: var(--glow-yellow);
+  }
+
+  /* MAIN GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 12px;
+  }
+
+  /* CHART AREA */
+  .chart-container {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 20% 80%, #00ff8808 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, #00aaff05 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* MULTIPLIER DISPLAY */
+  .multiplier-wrap {
+    text-align: center;
+    position: relative;
+  }
+  .multiplier-main {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    line-height: 1;
+    transition: color 0.1s, text-shadow 0.1s;
+    position: relative;
+  }
+  .multiplier-main.going {
+    color: var(--green);
+    text-shadow: var(--glow-green);
+    animation: pulse-glow 0.5s ease-in-out infinite alternate;
+  }
+  .multiplier-main.crashed {
+    color: var(--red);
+    text-shadow: var(--glow-red);
+    animation: crash-shake 0.5s ease-out;
+  }
+  .multiplier-main.waiting {
+    color: var(--text-mid);
+  }
+  .multiplier-main.cashed {
+    color: var(--yellow);
+    text-shadow: var(--glow-yellow);
+  }
+  @keyframes pulse-glow {
+    from { text-shadow: 0 0 10px #00ff8860, 0 0 30px #00ff8820; }
+    to { text-shadow: 0 0 30px #00ff88cc, 0 0 80px #00ff8840; }
+  }
+  @keyframes crash-shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px) rotate(-2deg); }
+    40% { transform: translateX(8px) rotate(2deg); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+  .multiplier-label {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: -8px;
+  }
+
+  /* CANVAS */
+  canvas {
+    width: 100%;
+    height: 280px;
+    border-radius: 6px;
+    display: block;
+    background: transparent;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: all 0.3s;
+  }
+  .status-bar.waiting { background: var(--blue-dim); color: var(--blue); border: 1px solid #00aaff40; }
+  .status-bar.going { background: var(--green-dim); color: var(--green); border: 1px solid #00ff8840; }
+  .status-bar.crashed { background: var(--red-dim); color: var(--red); border: 1px solid #ff336640; }
+  .status-bar.cashed { background: var(--yellow-dim); color: var(--yellow); border: 1px solid #ffd70040; }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: blink 1s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .status-bar.crashed .status-dot, .status-bar.waiting .status-dot { animation: none; }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* BET PANEL */
+  .bet-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .panel-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: var(--text-mid);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .field-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    padding: 10px 12px;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .field-input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 2px var(--green-dim);
+  }
+  .field-input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .quick-bets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  .quick-bet {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-mid);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+  }
+  .quick-bet:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+  .auto-cashout-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toggle {
+    position: relative;
+    width: 36px; height: 20px;
+    cursor: pointer;
+  }
+  .toggle input { display: none; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+  .toggle input:checked ~ .toggle-track { background: var(--green); }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+  .toggle-label { font-size: 12px; color: var(--text-mid); letter-spacing: 1px; flex: 1; }
+  .auto-cashout-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 4px 8px;
+    width: 60px;
+    outline: none;
+    text-align: center;
+  }
+
+  /* ACTION BUTTON */
+  .btn-action {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-action::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(255,255,255,0.1), transparent);
+    pointer-events: none;
+  }
+  .btn-action.bet {
+    background: linear-gradient(135deg, #00cc66, #00ff88);
+    color: #001a10;
+    box-shadow: 0 4px 20px #00ff8840;
+  }
+  .btn-action.bet:hover { transform: translateY(-2px); box-shadow: 0 8px 30px #00ff8860; }
+  .btn-action.cashout {
+    background: linear-gradient(135deg, #cc9900, #ffd700);
+    color: #1a1000;
+    box-shadow: 0 4px 20px #ffd70040;
+    animation: cashout-pulse 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes cashout-pulse {
+    from { box-shadow: 0 4px 20px #ffd70040, 0 0 0 0 #ffd70040; }
+    to { box-shadow: 0 8px 40px #ffd70080, 0 0 0 6px transparent; }
+  }
+  .btn-action.cashout:hover { transform: scale(1.02); }
+  .btn-action.waiting-next {
+    background: var(--panel2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    cursor: default;
+    animation: none;
+  }
+  .btn-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+
+  /* HISTORY PANEL */
+  .history-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    flex: 1;
+    overflow: hidden;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .history-list::-webkit-scrollbar { width: 3px; }
+  .history-list::-webkit-scrollbar-track { background: transparent; }
+  .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    animation: slide-in 0.3s ease-out;
+  }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .history-item.win { background: #00ff8812; color: var(--green); border: 1px solid #00ff8830; }
+  .history-item.lose { background: #ff336612; color: var(--red); border: 1px solid #ff336630; }
+  .history-item.neutral { background: var(--panel2); color: var(--text-dim); border: 1px solid var(--border); }
+  .history-mult { font-weight: 700; }
+  .history-profit { font-size: 11px; }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .stat-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.yellow { color: var(--yellow); }
+  .stat-lbl {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* CRASH OVERLAY */
+  .crash-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 8, 16, 0.7);
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 10;
+  }
+  .crash-overlay.show { opacity: 1; pointer-events: all; }
+  .crash-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    color: var(--red);
+    text-shadow: var(--glow-red);
+    letter-spacing: 8px;
+    animation: crash-appear 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+  @keyframes crash-appear {
+    0% { transform: scale(3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .countdown-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    margin-top: 8px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* ROCKET EMOJI ON CHART */
+  .rocket-wrap {
+    position: absolute;
+    font-size: 24px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    filter: drop-shadow(0 0 8px #00ff88);
+    z-index: 5;
+  }
+
+  @media (max-width: 720px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .right-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .multiplier-main { font-size: 56px; }
+    canvas { height: 200px; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .right-panel { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      MOONSHOT
+      <span>Crypto Crash ▸ v2.0</span>
+    </div>
+    <div class="balance-display">
+      <div class="balance-label">Balance</div>
+      <div class="balance-value" id="balanceDisplay">$1,000.00</div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="main-grid">
+    <!-- CHART SECTION -->
+    <div class="chart-container" id="chartContainer">
+      <!-- Crash overlay -->
+      <div class="crash-overlay" id="crashOverlay">
+        <div>
+          <div class="crash-text">CRASHED!</div>
+          <div class="countdown-text" id="countdownText">Next round in 5s...</div>
+        </div>
+      </div>
+
+      <!-- Multiplier -->
+      <div class="multiplier-wrap">
+        <div class="multiplier-main waiting" id="multiplierDisplay">1.00×</div>
+        <div class="multiplier-label" id="multiplierSub">Place your bet</div>
+      </div>
+
+      <!-- Canvas -->
+      <canvas id="crashChart"></canvas>
+
+      <!-- Status bar -->
+      <div class="status-bar waiting" id="statusBar">
+        <div class="status-dot"></div>
+        <span id="statusText">Waiting for next round...</span>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <!-- BET PANEL -->
+      <div class="bet-panel">
+        <div class="panel-title">Place Bet</div>
+
+        <div class="field-group">
+          <div class="field-label">Bet Amount ($)</div>
+          <input type="number" class="field-input" id="betInput" value="10" min="1" step="1" placeholder="0.00">
+          <div class="quick-bets">
+            <button class="quick-bet" onclick="setBet(10)">$10</button>
+            <button class="quick-bet" onclick="setBet(25)">$25</button>
+            <button class="quick-bet" onclick="setBet(50)">$50</button>
+            <button class="quick-bet" onclick="setBet(100)">$100</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="auto-cashout-row">
+            <label class="toggle">
+              <input type="checkbox" id="autoCashoutToggle">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+            <span class="toggle-label">Auto Cashout at</span>
+            <input type="number" class="auto-cashout-val" id="autoCashoutVal" value="2.00" min="1.01" step="0.1">
+            <span style="font-size:12px;color:var(--text-dim)">×</span>
+          </div>
+        </div>
+
+        <button class="btn-action bet" id="mainBtn" onclick="handleMainButton()">
+          PLACE BET
+        </button>
+
+        <!-- Profit preview -->
+        <div style="text-align:center; font-size:13px; color:var(--text-dim); letter-spacing:1px;" id="profitPreview">
+          Potential win: <span style="color:var(--green);" id="previewVal">—</span>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="history-panel">
+        <div class="panel-title">Round History</div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val green" id="statWins">0</div>
+      <div class="stat-lbl">Wins</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val red" id="statLosses">0</div>
+      <div class="stat-lbl">Losses</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val yellow" id="statProfit">$0.00</div>
+      <div class="stat-lbl">Net Profit</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== GAME ENGINE =====================
+const GAME_STATES = { WAITING: 'waiting', BETTING: 'betting', GOING: 'going', CRASHED: 'crashed', CASHED: 'cashed' };
+
+let state = GAME_STATES.WAITING;
+let balance = 1000;
+let currentBet = 0;
+let currentMult = 1.0;
+let crashAt = 1.0;
+let animFrame = null;
+let startTime = null;
+let hasBetThisRound = false;
+let hasCashedOut = false;
+let roundHistory = [];
+let stats = { wins: 0, losses: 0, profit: 0 };
+let countdownInterval = null;
+let betQueuedForNext = false;
+let queuedBet = 0;
+
+// Chart data
+let chartPoints = [];
+const MAX_CHART_POINTS = 300;
+
+// Canvas
+const canvas = document.getElementById('crashChart');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const container = canvas.parentElement;
+  canvas.width = container.clientWidth - 32;
+  canvas.height = 280;
+}
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); drawChart(); });
+
+// ===================== CRASH MATH =====================
+function generateCrashPoint() {
+  // House edge ~5%, provably fair style
+  const r = Math.random();
+  if (r < 0.05) return 1.0 + Math.random() * 0.1; // instant crash 5%
+  // Generate multiplier with fat tail
+  const e = 0.05;
+  const crash = Math.max(1.0, (1 / (1 - r * (1 - e))));
+  return Math.round(crash * 100) / 100;
+}
+
+function multToY(mult) {
+  // Logarithmic Y scale
+  const h = canvas.height;
+  const padding = 30;
+  const logMin = 0; // log(1) = 0
+  const logMax = Math.log(Math.max(currentMult * 1.2, 3));
+  const logVal = Math.log(mult);
+  return h - padding - ((logVal - logMin) / (logMax - logMin)) * (h - padding * 2);
+}
+
+function drawChart() {
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  if (chartPoints.length < 2) return;
+
+  const pts = chartPoints;
+  const n = pts.length;
+  const maxX = pts[n - 1].x;
+  const minX = pts[0].x;
+  const xRange = Math.max(maxX - minX, 1);
+
+  function toCanvasX(x) {
+    const padding = 60;
+    return padding + ((x - minX) / xRange) * (w - padding * 1.5);
+  }
+
+  // Grid lines
+  ctx.strokeStyle = '#1a2340';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 5]);
+  for (let m = 1; m <= Math.ceil(currentMult * 1.2); m++) {
+    const y = multToY(m);
+    if (y < 0 || y > h) continue;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+    ctx.fillStyle = '#2a3a5a';
+    ctx.font = '10px Space Mono, monospace';
+    ctx.fillText(m + '×', 4, y - 3);
+  }
+  ctx.setLineDash([]);
+
+  // Determine color based on state
+  let lineColor = '#00ff88';
+  let glowColor = '#00ff8880';
+  if (state === GAME_STATES.CRASHED) {
+    lineColor = '#ff3366';
+    glowColor = '#ff336680';
+  } else if (hasCashedOut) {
+    lineColor = '#ffd700';
+    glowColor = '#ffd70080';
+  }
+
+  // Fill under curve
+  ctx.beginPath();
+  ctx.moveTo(toCanvasX(pts[0].x), h);
+  for (let i = 0; i < n; i++) {
+    ctx.lineTo(toCanvasX(pts[i].x), multToY(pts[i].y));
+  }
+  ctx.lineTo(toCanvasX(pts[n-1].x), h);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, lineColor + '30');
+  grad.addColorStop(1, lineColor + '05');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Main line
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 12;
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(toCanvasX(pts[0].x), multToY(pts[0].y));
+  for (let i = 1; i < n; i++) {
+    ctx.lineTo(toCanvasX(pts[i].x), multToY(pts[i].y));
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Dot at tip
+  if (n > 0 && state === GAME_STATES.GOING) {
+    const lx = toCanvasX(pts[n-1].x);
+    const ly = multToY(pts[n-1].y);
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = lineColor;
+    ctx.beginPath();
+    ctx.arc(lx, ly, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Rocket
+    ctx.font = '20px serif';
+    ctx.fillText('🚀', lx - 12, ly - 12);
+  }
+
+  // Cashout line
+  if (hasCashedOut && currentBet > 0) {
+    const cashedMult = parseFloat(document.getElementById('multiplierDisplay').dataset.cashedAt || currentMult);
+    const cy = multToY(cashedMult);
+    ctx.strokeStyle = '#ffd70060';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(w, cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 11px Rajdhani, sans-serif';
+    ctx.fillText('💰 ' + cashedMult.toFixed(2) + '×', 65, cy - 5);
+  }
+}
+
+// ===================== GAME LOOP =====================
+function startRound() {
+  state = GAME_STATES.GOING;
+  crashAt = generateCrashPoint();
+  currentMult = 1.0;
+  chartPoints = [{ x: 0, y: 1.0 }];
+  hasBetThisRound = (currentBet > 0);
+  hasCashedOut = false;
+  startTime = performance.now();
+
+  document.getElementById('crashOverlay').classList.remove('show');
+  setMultiplierDisplay(1.0, 'going');
+  setStatus('going', '🚀 Round in progress...');
+  updateBtn();
+
+  // Auto-cashout check
+  const autoCashoutEnabled = document.getElementById('autoCashoutToggle').checked;
+  const autoCashoutAt = parseFloat(document.getElementById('autoCashoutVal').value);
+
+  function tick(now) {
+    if (state !== GAME_STATES.GOING) return;
+
+    const elapsed = (now - startTime) / 1000;
+    // Exponential growth: multiplier = e^(rate * t)
+    const rate = 0.12;
+    currentMult = Math.exp(rate * elapsed);
+    currentMult = Math.round(currentMult * 100) / 100;
+
+    // Auto cashout
+    if (hasBetThisRound && !hasCashedOut && autoCashoutEnabled && currentMult >= autoCashoutAt) {
+      cashOut();
+      return;
+    }
+
+    // Crash check
+    if (currentMult >= crashAt) {
+      currentMult = crashAt;
+      triggerCrash();
+      return;
+    }
+
+    chartPoints.push({ x: elapsed, y: currentMult });
+    if (chartPoints.length > MAX_CHART_POINTS) chartPoints.shift();
+
+    setMultiplierDisplay(currentMult, hasCashedOut ? 'cashed' : 'going');
+    drawChart();
+
+    animFrame = requestAnimationFrame(tick);
+  }
+
+  animFrame = requestAnimationFrame(tick);
+}
+
+function triggerCrash() {
+  if (animFrame) cancelAnimationFrame(animFrame);
+  state = GAME_STATES.CRASHED;
+
+  chartPoints.push({ x: (performance.now() - startTime) / 1000, y: crashAt });
+  setMultiplierDisplay(crashAt, 'crashed');
+  setStatus('crashed', `💥 Crashed at ${crashAt.toFixed(2)}×`);
+
+  const overlay = document.getElementById('crashOverlay');
+  overlay.classList.add('show');
+
+  // Record loss
+  if (hasBetThisRound && !hasCashedOut) {
+    stats.losses++;
+    stats.profit -= currentBet;
+    addHistory(crashAt, -currentBet);
+    showToast(`Lost $${currentBet.toFixed(2)} — crashed at ${crashAt.toFixed(2)}×`, 'red');
+  } else if (!hasBetThisRound) {
+    addHistory(crashAt, 0);
+  }
+  currentBet = 0;
+  updateStats();
+  updateBtn();
+  drawChart();
+
+  // Countdown
+  let secs = 5;
+  document.getElementById('countdownText').textContent = `Next round in ${secs}s...`;
+  countdownInterval = setInterval(() => {
+    secs--;
+    document.getElementById('countdownText').textContent = `Next round in ${secs}s...`;
+    if (secs <= 0) {
+      clearInterval(countdownInterval);
+      beginBettingPhase();
+    }
+  }, 1000);
+}
+
+function beginBettingPhase() {
+  state = GAME_STATES.BETTING;
+  chartPoints = [];
+  currentMult = 1.0;
+  hasBetThisRound = false;
+  hasCashedOut = false;
+  document.getElementById('crashOverlay').classList.remove('show');
+  setMultiplierDisplay(1.0, 'waiting');
+  setStatus('waiting', '⏳ Place your bets! Round starts in 3s...');
+  updateBtn();
+  drawChart();
+
+  // If queued bet
+  if (betQueuedForNext && queuedBet > 0) {
+    placeBetNow(queuedBet);
+    betQueuedForNext = false;
+    queuedBet = 0;
+  }
+
+  setTimeout(startRound, 3000);
+}
+
+function placeBetNow(amount) {
+  if (amount > balance) {
+    showToast('Insufficient balance!', 'red');
+    return;
+  }
+  currentBet = amount;
+  balance -= amount;
+  updateBalanceDisplay();
+  hasBetThisRound = true;
+  updateBtn();
+  updatePreview();
+  showToast(`Bet $${amount.toFixed(2)} placed! 🎲`, 'green');
+}
+
+function cashOut() {
+  if (state !== GAME_STATES.GOING) return;
+  if (!hasBetThisRound || hasCashedOut) return;
+
+  hasCashedOut = true;
+  const winMult = currentMult;
+  const payout = currentBet * winMult;
+  const profit = payout - currentBet;
+
+  document.getElementById('multiplierDisplay').dataset.cashedAt = winMult;
+  balance += payout;
+  stats.wins++;
+  stats.profit += profit;
+  updateBalanceDisplay();
+  updateStats();
+  addHistory(winMult, profit, true);
+
+  setStatus('cashed', `💰 Cashed out at ${winMult.toFixed(2)}× — Won $${profit.toFixed(2)}!`);
+  showToast(`+$${profit.toFixed(2)} @ ${winMult.toFixed(2)}× 🚀`, 'yellow');
+  updateBtn();
+  setMultiplierDisplay(winMult, 'cashed');
+}
+
+// ===================== UI HELPERS =====================
+function setMultiplierDisplay(mult, mode) {
+  const el = document.getElementById('multiplierDisplay');
+  el.textContent = mult.toFixed(2) + '×';
+  el.className = 'multiplier-main ' + mode;
+  const sub = document.getElementById('multiplierSub');
+  if (mode === 'going') sub.textContent = '🚀 LIVE';
+  else if (mode === 'crashed') sub.textContent = '💥 CRASHED';
+  else if (mode === 'cashed') sub.textContent = '✅ CASHED OUT';
+  else sub.textContent = 'Place your bet';
+}
+
+function setStatus(type, msg) {
+  const bar = document.getElementById('statusBar');
+  bar.className = 'status-bar ' + type;
+  document.getElementById('statusText').textContent = msg;
+}
+
+function updateBtn() {
+  const btn = document.getElementById('mainBtn');
+  if (state === GAME_STATES.GOING && hasBetThisRound && !hasCashedOut) {
+    // Show cashout button
+    const payout = currentBet * currentMult;
+    btn.textContent = `CASH OUT $${payout.toFixed(2)}`;
+    btn.className = 'btn-action cashout';
+    btn.disabled = false;
+  } else if (state === GAME_STATES.BETTING && !hasBetThisRound) {
+    btn.textContent = 'PLACE BET';
+    btn.className = 'btn-action bet';
+    btn.disabled = false;
+  } else if (state === GAME_STATES.GOING && (!hasBetThisRound || hasCashedOut)) {
+    btn.textContent = hasCashedOut ? 'CASHED OUT ✓' : 'BET NEXT ROUND';
+    btn.className = 'btn-action waiting-next';
+    btn.disabled = hasCashedOut;
+  } else if (state === GAME_STATES.CRASHED || state === GAME_STATES.WAITING) {
+    btn.textContent = 'PLACE BET';
+    btn.className = 'btn-action bet';
+    btn.disabled = true;
+  } else {
+    btn.textContent = 'WAIT...';
+    btn.className = 'btn-action waiting-next';
+    btn.disabled = true;
+  }
+
+  // Update cashout btn live text during going
+  if (state === GAME_STATES.GOING && hasBetThisRound && !hasCashedOut) {
+    btn.textContent = `CASH OUT $${(currentBet * currentMult).toFixed(2)}`;
+  }
+}
+
+function handleMainButton() {
+  if (state === GAME_STATES.GOING && hasBetThisRound && !hasCashedOut) {
+    cashOut();
+  } else if (state === GAME_STATES.BETTING && !hasBetThisRound) {
+    const amount = parseFloat(document.getElementById('betInput').value);
+    if (!amount || amount <= 0) { showToast('Enter a valid bet amount!', 'red'); return; }
+    placeBetNow(amount);
+  } else if (state === GAME_STATES.GOING && !hasBetThisRound) {
+    // Queue bet for next round
+    const amount = parseFloat(document.getElementById('betInput').value);
+    if (!amount || amount <= 0) { showToast('Enter a valid bet amount!', 'red'); return; }
+    betQueuedForNext = true;
+    queuedBet = amount;
+    showToast(`Bet $${amount.toFixed(2)} queued for next round`, 'blue');
+  }
+}
+
+function setBet(amount) {
+  document.getElementById('betInput').value = amount;
+  updatePreview();
+}
+
+function updatePreview() {
+  const bet = parseFloat(document.getElementById('betInput').value) || 0;
+  const autoCashout = document.getElementById('autoCashoutToggle').checked
+    ? parseFloat(document.getElementById('autoCashoutVal').value) : null;
+  const preview = document.getElementById('previewVal');
+  if (bet > 0 && autoCashout) {
+    preview.textContent = `$${(bet * autoCashout).toFixed(2)} @ ${autoCashout}×`;
+    preview.style.color = 'var(--yellow)';
+  } else if (bet > 0) {
+    preview.textContent = `$${(bet * 2).toFixed(2)} @ 2.00×`;
+    preview.style.color = 'var(--green)';
+  } else {
+    preview.textContent = '—';
+  }
+}
+
+function updateBalanceDisplay() {
+  document.getElementById('balanceDisplay').textContent = `$${balance.toFixed(2)}`;
+}
+
+function updateStats() {
+  document.getElementById('statWins').textContent = stats.wins;
+  document.getElementById('statLosses').textContent = stats.losses;
+  const el = document.getElementById('statProfit');
+  el.textContent = (stats.profit >= 0 ? '+' : '') + `$${stats.profit.toFixed(2)}`;
+  el.className = 'stat-val ' + (stats.profit >= 0 ? 'green' : 'red');
+}
+
+function addHistory(mult, profitAmt, wasWin) {
+  roundHistory.unshift({ mult, profit: profitAmt, wasWin });
+  if (roundHistory.length > 20) roundHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+  roundHistory.forEach(r => {
+    const div = document.createElement('div');
+    let cls = 'neutral';
+    let profitStr = '';
+    if (r.profit > 0) { cls = 'win'; profitStr = `+$${r.profit.toFixed(2)}`; }
+    else if (r.profit < 0) { cls = 'lose'; profitStr = `-$${Math.abs(r.profit).toFixed(2)}`; }
+    div.className = 'history-item ' + cls;
+    div.innerHTML = `
+      <span class="history-mult">${r.mult.toFixed(2)}×</span>
+      ${profitStr ? `<span class="history-profit">${profitStr}</span>` : ''}
+    `;
+    list.appendChild(div);
+  });
+}
+
+// Toast notifications
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  const colors = { green: '#00ff88', red: '#ff3366', yellow: '#ffd700', blue: '#00aaff' };
+  const bgs = { green: '#00ff8815', red: '#ff336615', yellow: '#ffd70015', blue: '#00aaff15' };
+  t.style.cssText = `
+    position:fixed; bottom:20px; right:20px; z-index:999;
+    background:${bgs[type]}; border:1px solid ${colors[type]}40;
+    color:${colors[type]}; padding:10px 16px; border-radius:6px;
+    font-family:Rajdhani,sans-serif; font-size:14px; font-weight:600;
+    letter-spacing:1px; backdrop-filter:blur(10px);
+    animation: toast-in 0.3s ease-out;
+    box-shadow: 0 4px 20px ${colors[type]}20;
+  `;
+  t.textContent = msg;
+  const style = document.createElement('style');
+  style.textContent = '@keyframes toast-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}';
+  document.head.appendChild(style);
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; t.style.transition = '0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
+}
+
+// Input listeners
+document.getElementById('betInput').addEventListener('input', updatePreview);
+document.getElementById('autoCashoutVal').addEventListener('input', updatePreview);
+document.getElementById('autoCashoutToggle').addEventListener('change', updatePreview);
+
+// Also update cashout button text in going state via RAF loop
+setInterval(() => {
+  if (state === GAME_STATES.GOING && hasBetThisRound && !hasCashedOut) {
+    updateBtn();
+  }
+}, 100);
+
+// ===================== INIT =====================
+updatePreview();
+updateBalanceDisplay();
+setStatus('waiting', 'Waiting for next round...');
+setMultiplierDisplay(1.0, 'waiting');
+document.getElementById('mainBtn').disabled = true;
+
+// Start first round
+setTimeout(beginBettingPhase, 1000);
+</script>
+</body>
+</html>
